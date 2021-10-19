@@ -43,6 +43,7 @@ dependencies:
   get:
   ffi:
   sqflite_common_ffi:
+  get_storage:
 
 dev_dependencies:
   flutter_test:

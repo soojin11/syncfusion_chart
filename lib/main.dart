@@ -4,11 +4,15 @@ import 'dart:math' as math;
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:syncfusion_why/mode.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -19,9 +23,9 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: Themes.light,
+      darkTheme: Themes.dark,
+      themeMode: ThemeService().theme, //버튼 만들어야 돼
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -76,8 +80,22 @@ class _MyHomePageState extends State<MyHomePage> {
     return SafeArea(
         child: Scaffold(
       appBar: AppBar(
+        elevation: 0,
         title: Text('WR'),
         centerTitle: true,
+        leading: GestureDetector(
+          onTap: () {
+            ThemeService().switchTheme();
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Icon(
+                Get.isDarkMode
+                    ? Icons.toggle_off_outlined
+                    : Icons.toggle_on_outlined,
+                size: 40),
+          ),
+        ),
       ),
       drawer: Drawer(
         child: ListView(
@@ -101,11 +119,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   child: Text('Reload')),
               OutlinedButton(
-                  onPressed: () async {
-                    await Get.find<CountControllerWithReactive>().csvSaveInit();
-                    Get.find<CountControllerWithReactive>().bFileSave.value =
-                        true;
-                  },
+                  onPressed: () {},
+                  // async {
+                  //   await Get.find<CountControllerWithReactive>().csvSaveInit();
+                  //   Get.find<CountControllerWithReactive>().bFileSave.value =
+                  //       true;
+                  // },
                   child: Text('Save File')),
               OutlinedButton(onPressed: () {}, child: Text('Start')),
               OutlinedButton(onPressed: () {}, child: Text('Stop')),
@@ -223,44 +242,42 @@ class SpecData {
   SpecData({required this.time, required this.num});
 }
 
-//getHiData, getChartData를 받아서 저장해야 하니까,,,,
-class CountControllerWithReactive extends GetxController {
-  static CountControllerWithReactive get to => Get.find();
-  RxString filePath = ''.obs;
-  RxBool bFileSave = false.obs;
+// //getHiData, getChartData를 받아서 저장해야 하니까,,,,
+// class CountControllerWithReactive extends GetxController {
+//   static CountControllerWithReactive get to => Get.find();
+//   RxString filePath = ''.obs;
+//   RxBool bFileSave = false.obs;
 
-  Future<File> csvSave() async {
-    DateTime current = DateTime.now();
-    final String fileNameDate =
-        '${DateFormat('yyyy-MM-dd HH:mm:ss').format(current)}';
-    print('fileNameDate $fileNameDate');
-    List<dynamic> getHiData = [];
-    List<List<dynamic>> addGetHiData = [];
-    //var filePath;
-    File file = File(filePath.value);
-    getHiData.add(fileNameDate);
-    addGetHiData.add(getHiData);
-    String csv = const ListToCsvConverter().convert(addGetHiData) + '\n';
-    return file.writeAsString(csv, mode: FileMode.append);
-  }
+//   Future<File> csvSave() async {
+//     DateTime current = DateTime.now();
+//     final String fileNameDate =
+//         '${DateFormat('yyyy-MM-dd HH:mm:ss').format(current)}';
+//     print('fileNameDate $fileNameDate');
+//     List<dynamic> getHiData = [];
+//     List<List<dynamic>> addGetHiData = [];
+//     //var filePath;
+//     File file = File(filePath.value);
+//     getHiData.add(fileNameDate);
+//     addGetHiData.add(getHiData);
+//     String csv = const ListToCsvConverter().convert(addGetHiData) + '\n';
+//     return file.writeAsString(csv, mode: FileMode.append);
+//   }
 
-  Future<File> csvSaveInit() async {
-    DateTime current = DateTime.now();
-    final String fileNameDate =
-        '${DateFormat('yyyy-MM-dd HH:mm:ss').format(current)}';
-    await Directory('datafiles').create();
-    filePath.value = "./datafiles/$fileNameDate.csv";
-    File file = File(filePath.value);
+//   Future<File> csvSaveInit() async {
+//     DateTime current = DateTime.now();
+//     final String fileNameDate =
+//         '${DateFormat('yyyy-MM-dd HH:mm:ss').format(current)}';
+//     await Directory('datafiles').create();
+//     filePath.value = "./datafiles/$fileNameDate.csv";
+//     File file = File(filePath.value);
 
-    String firstRow = "Test";
-    String secondRow = "Hello";
-    String helloTest = firstRow + secondRow;
+//     String firstRow = "Test";
+//     String secondRow = "Hello";
+//     String helloTest = firstRow + secondRow;
 
-    return file.writeAsString(helloTest);
-  }
-}
-
-
+//     return file.writeAsString(helloTest);
+//   }
+// }
 
 // class GenerateCSV {
 //   static generateCsv(List<List<String>> data, String fileName) async {
@@ -289,7 +306,6 @@ class CountControllerWithReactive extends GetxController {
 //     } else { //if folder not exists create folder and then return its path
 //       final Directory _appDocDirNewFolder = await _appDocDirFolder.create(
 //           recursive: true);
-
 
 //       final path = "${_appDocDirNewFolder.path}/$fileName";
 //       print(path);
