@@ -39,6 +39,10 @@ dependencies:
   path:
   path_provider:
   csv:
+  intl:
+  get:
+  ffi:
+  sqflite_common_ffi:
 
 dev_dependencies:
   flutter_test:
